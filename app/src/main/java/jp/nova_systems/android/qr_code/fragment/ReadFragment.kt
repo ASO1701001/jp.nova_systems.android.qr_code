@@ -45,24 +45,24 @@ class ReadFragment : Fragment() {
                         }
                     }
                     lastData = result.text
-                }
-                BottomSheetMaterialDialog.Builder(activity!!).apply {
-                    setTitle("Success!")
-                    setMessage("Barcode loaded.")
-                    setCancelable(false)
-                    setPositiveButton("Share", R.drawable.icon_share) { dialog, _ ->
-                        ShareCompat.IntentBuilder.from(activity).apply {
-                            setText(result.text)
-                            setType("text/plain")
-                            startChooser()
-                        }
+                    BottomSheetMaterialDialog.Builder(activity!!).apply {
+                        setTitle("Success!")
+                        setMessage("Barcode loaded.")
+                        setCancelable(false)
+                        setPositiveButton("Share", R.drawable.icon_share) { dialog, _ ->
+                            ShareCompat.IntentBuilder.from(activity).apply {
+                                setText(result.text)
+                                setType("text/plain")
+                                startChooser()
+                            }
 
-                        dialog.dismiss()
-                    }
-                    setNegativeButton("Close", R.drawable.icon_close) { dialog, _ ->
-                        dialog.dismiss()
-                    }
-                }.build().show()
+                            dialog.dismiss()
+                        }
+                        setNegativeButton("Close", R.drawable.icon_close) { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                    }.build().show()
+                }
             }
 
             override fun possibleResultPoints(resultPoints: MutableList<ResultPoint>) {}
