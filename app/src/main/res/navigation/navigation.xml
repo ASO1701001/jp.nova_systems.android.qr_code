@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation"
+    app:startDestination="@+id/navigation_generate">
+
+    <fragment
+        android:id="@+id/navigation_generate"
+        android:name="jp.nova_systems.android.qr_code.fragment.GenerateFragment"
+        android:label="@string/title_generate"
+        tools:layout="@layout/fragment_generate" />
+
+    <fragment
+        android:id="@+id/navigation_read"
+        android:name="jp.nova_systems.android.qr_code.fragment.ReadFragment"
+        android:label="@string/title_read"
+        tools:layout="@layout/fragment_read" />
+
+    <fragment
+        android:id="@+id/navigation_history"
+        android:name="jp.nova_systems.android.qr_code.fragment.HistoryFragment"
+        android:label="@string/title_history"
+        tools:layout="@layout/fragment_history" />
+
+    <fragment
+        android:id="@+id/navigation_setting"
+        android:name="jp.nova_systems.android.qr_code.fragment.SettingFragment"
+        android:label="@string/title_setting"
+        tools:layout="@layout/fragment_setting" />
+</navigation>

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">QR Code</string>
+    <string name="title_generate">Generate</string>
+    <string name="title_read">Read</string>
+    <string name="title_history">History</string>
+    <string name="title_setting">Setting</string>
+</resources>
