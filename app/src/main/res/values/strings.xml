@@ -1,7 +1,11 @@
 <resources>
     <string name="app_name">QR Code</string>
-    <string name="title_generate">Generate</string>
-    <string name="title_read">Read</string>
+    <string name="title_generate">Generator</string>
+    <string name="title_read">Reader</string>
     <string name="title_history">History</string>
     <string name="title_setting">Setting</string>
+    <string name="str_warning_image">warning_image</string>
+    <string name="str_warning_msg">設定を開き権限を付与してください</string>
+    <string name="str_setting_open">設定を開く</string>
+    <string name="str_required_permission">必要な権限が付与されていません</string>
 </resources>
