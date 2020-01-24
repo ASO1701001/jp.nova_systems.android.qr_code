@@ -45,7 +45,7 @@ class ReadFragment : Fragment() {
                         }
                     }
                     lastData = result.text
-                    BottomSheetMaterialDialog.Builder(activity!!).apply {
+                    val dialog = BottomSheetMaterialDialog.Builder(activity!!).apply {
                         setTitle("Success!")
                         setMessage("Barcode loaded.")
                         setCancelable(false)
@@ -61,7 +61,11 @@ class ReadFragment : Fragment() {
                         setNegativeButton("Close", R.drawable.icon_close) { dialog, _ ->
                             dialog.dismiss()
                         }
-                    }.build().show()
+                    }.build()
+                    dialog.setOnDismissListener {
+                        lastData = ""
+                    }
+                    dialog.show()
                 }
             }
 
