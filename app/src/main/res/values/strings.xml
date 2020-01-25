@@ -4,5 +4,4 @@
     <string name="title_read">Reader</string>
     <string name="title_history">History</string>
     <string name="title_setting">Setting</string>
-    <string name="str_required_permission">必要な権限が付与されていません</string>
 </resources>
