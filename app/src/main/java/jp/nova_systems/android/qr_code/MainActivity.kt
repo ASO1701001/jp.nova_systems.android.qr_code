@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == REQUEST_CODE_PERMISSION) {
             for (grant in grantResults) {
                 if (grant != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, resources.getString(R.string.str_required_permission), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "必要な権限が付与されていません", Toast.LENGTH_SHORT).show()
                     Intent().apply {
                         action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                         data = Uri.fromParts("package", applicationContext.packageName, null)
@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (offPermissionCount >= 1) {
-            Toast.makeText(this, resources.getString(R.string.str_required_permission), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "必要な権限が付与されていません", Toast.LENGTH_SHORT).show()
             Intent().apply {
                 action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                 data = Uri.fromParts("package", applicationContext.packageName, null)
