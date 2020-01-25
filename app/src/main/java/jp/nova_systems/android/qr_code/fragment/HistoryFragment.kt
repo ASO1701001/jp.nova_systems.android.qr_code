@@ -1,5 +1,6 @@
 package jp.nova_systems.android.qr_code.fragment
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import android.widget.SimpleAdapter
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ShareCompat
 import androidx.fragment.app.Fragment
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.snackbar.Snackbar
 import com.shreyaspatil.MaterialDialog.BottomSheetMaterialDialog
 import io.realm.Realm
@@ -19,6 +21,7 @@ class HistoryFragment : Fragment() {
     private lateinit var realm: Realm
     private lateinit var rootView: ConstraintLayout
     private lateinit var listView: ListView
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,9 +34,17 @@ class HistoryFragment : Fragment() {
         rootView = activity!!.findViewById(R.id.container)
         listView = view.findViewById(R.id.list_view)
 
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
+        swipeRefreshLayout.setOnRefreshListener(mOnRefreshListener)
+        swipeRefreshLayout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW)
+
         onSetList()
 
         return view
+    }
+
+    private val mOnRefreshListener = SwipeRefreshLayout.OnRefreshListener {
+        onSetList()
     }
 
     private fun onSetList() {
@@ -93,6 +104,7 @@ class HistoryFragment : Fragment() {
 
             return@setOnItemLongClickListener true
         }
+        swipeRefreshLayout.isRefreshing = false
     }
 
     private fun onGetList(): ArrayList<HashMap<String, String>> {
