@@ -22,6 +22,7 @@ import java.util.*
 class ReadFragment : Fragment() {
     private lateinit var realm: Realm
     private var lastData: String = ""
+    private lateinit var barcodeView: DecoratedBarcodeView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,7 +32,7 @@ class ReadFragment : Fragment() {
 
         realm = Realm.getDefaultInstance()
 
-        val barcodeView = view.findViewById<DecoratedBarcodeView>(R.id.barcodeView)
+        barcodeView = view.findViewById(R.id.barcode_view)
         barcodeView.barcodeView.decoderFactory = DefaultDecoderFactory(listOf(BarcodeFormat.QR_CODE))
         barcodeView.decodeContinuous(object : BarcodeCallback {
             override fun barcodeResult(result: BarcodeResult) {
@@ -80,5 +81,17 @@ class ReadFragment : Fragment() {
         super.onDestroy()
 
         realm.close()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        barcodeView.resume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        barcodeView.pause()
     }
 }

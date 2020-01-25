@@ -7,7 +7,7 @@
     tools:context=".fragment.ReadFragment">
 
     <com.journeyapps.barcodescanner.DecoratedBarcodeView
-        android:id="@+id/barcodeView"
+        android:id="@+id/barcode_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:zxing_scanner_layout="@layout/layout_custom_barcode_scanner" />
