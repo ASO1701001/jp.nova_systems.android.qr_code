@@ -1,0 +1,20 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="データ管理">
+        <PreferenceScreen
+            android:key="data_export"
+            android:title="エクスポート"
+            android:summary="読み込み履歴をエクスポートします" />
+
+        <PreferenceScreen
+            android:key="data_import"
+            android:title="インポート"
+            android:summary="読み込み履歴をインポートします" />
+
+        <PreferenceScreen
+            android:key="data_delete"
+            android:title="削除"
+            android:summary="すべての読み込み履歴を削除します"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>
