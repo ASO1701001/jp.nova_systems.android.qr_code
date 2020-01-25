@@ -48,7 +48,7 @@ class ReadFragment : Fragment() {
                     val dialog = BottomSheetMaterialDialog.Builder(activity!!).apply {
                         setTitle("Success!")
                         setMessage("Barcode loaded.")
-                        setCancelable(false)
+                        setCancelable(true)
                         setPositiveButton("Share", R.drawable.icon_share) { dialog, _ ->
                             ShareCompat.IntentBuilder.from(activity).apply {
                                 setText(result.text)
