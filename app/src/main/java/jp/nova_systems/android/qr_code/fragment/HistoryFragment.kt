@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.ListView
+import android.widget.SimpleAdapter
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ShareCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import com.shreyaspatil.MaterialDialog.BottomSheetMaterialDialog
@@ -15,6 +17,8 @@ import jp.nova_systems.android.qr_code.realm.CodeData
 
 class HistoryFragment : Fragment() {
     private lateinit var realm: Realm
+    private lateinit var rootView: ConstraintLayout
+    private lateinit var listView: ListView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -24,45 +28,71 @@ class HistoryFragment : Fragment() {
 
         realm = Realm.getDefaultInstance()
 
-        val listView = view.findViewById<ListView>(R.id.list_view)
+        rootView = activity!!.findViewById(R.id.container)
+        listView = view.findViewById(R.id.list_view)
+
+        onSetList()
+
+        return view
+    }
+
+    private fun onSetList() {
         val data = onGetList()
-        val adapter = ArrayAdapter<HashMap<String, String>>(
-            activity!!,
+        val adapter = SimpleAdapter(
+            activity,
+            data,
             android.R.layout.simple_list_item_1,
-            data
+            arrayOf("data"),
+            intArrayOf(android.R.id.text1)
         )
         listView.adapter = adapter
-//        listView.setOnClickListener {
-//
-//        }
-        listView.setOnItemLongClickListener { _, _, i, _ ->
-            val uuid = data[i]["uuid"]
+        listView.setOnItemClickListener { _, _, i, _ ->
             BottomSheetMaterialDialog.Builder(activity!!).apply {
-                setTitle("Delete?")
-                setMessage("Are you sure want to delete this file?")
-                setCancelable(false)
-                setPositiveButton("Delete", R.drawable.icon_delete) { dialog, _ ->
-                    val item = realm.where(CodeData::class.java).equalTo("uuid", uuid).findFirst()
-                    if (item == null) {
-                        Snackbar.make(view.rootView, "No data found.", Snackbar.LENGTH_SHORT).show()
-                    } else {
-                        realm.executeTransaction {
-                            item.deleteFromRealm()
-                        }
-                        Snackbar.make(view.rootView, "Data deleted!", Snackbar.LENGTH_SHORT).show()
+                val text = data[i]["data"].toString()
+                setTitle("データ")
+                setMessage(text)
+                setCancelable(true)
+                setPositiveButton("Share", R.drawable.icon_share) { dialog, _ ->
+                    ShareCompat.IntentBuilder.from(activity).apply {
+                        setText(text)
+                        setType("text/plain")
+                        startChooser()
                     }
 
                     dialog.dismiss()
                 }
-                setNegativeButton("Cancel", R.drawable.icon_close) { dialog, _ ->
+                setNegativeButton("キャンセル", R.drawable.icon_close) { dialog, _ ->
+                    dialog.dismiss()
+                }
+            }.build().show()
+        }
+        listView.setOnItemLongClickListener { _, _, i, _ ->
+            val uuid = data[i]["uuid"]
+            BottomSheetMaterialDialog.Builder(activity!!).apply {
+                setTitle("削除")
+                setMessage("一件のデータを削除しますか？")
+                setCancelable(true)
+                setPositiveButton("削除", R.drawable.icon_delete) { dialog, _ ->
+                    val item = realm.where(CodeData::class.java).equalTo("uuid", uuid).findFirst()
+                    if (item == null) {
+                        Snackbar.make(rootView, "データが見つからないため削除できませんでした", Snackbar.LENGTH_SHORT).show()
+                    } else {
+                        realm.executeTransaction {
+                            item.deleteFromRealm()
+                        }
+                        onSetList()
+                        Snackbar.make(rootView, "削除しました", Snackbar.LENGTH_SHORT).show()
+                    }
+
+                    dialog.dismiss()
+                }
+                setNegativeButton("キャンセル", R.drawable.icon_close) { dialog, _ ->
                     dialog.dismiss()
                 }
             }.build().show()
 
             return@setOnItemLongClickListener true
         }
-
-        return view
     }
 
     private fun onGetList(): ArrayList<HashMap<String, String>> {
