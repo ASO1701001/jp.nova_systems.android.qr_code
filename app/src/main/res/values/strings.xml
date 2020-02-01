@@ -4,4 +4,7 @@
     <string name="title_read">Reader</string>
     <string name="title_history">History</string>
     <string name="title_setting">Setting</string>
+    <string name="str_data">データ</string>
+    <string name="str_format">フォーマット</string>
+    <string name="str_generate">生成</string>
 </resources>
