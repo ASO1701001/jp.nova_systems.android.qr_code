@@ -122,63 +122,6 @@ class SettingFragment : Fragment() {
             }
         }
 
-        private fun onCsvExport(path: String): Boolean {
-            return try {
-                val random = RandomStringUtils.randomAlphabetic(20)
-                val fileName = "qr_code_data_${random}.json"
-
-                val fWriter = FileWriter("$path/$fileName", false)
-                val pWriter = PrintWriter(BufferedWriter(fWriter))
-
-                pWriter.print("uuid,")
-                pWriter.print("format,")
-                pWriter.print("data,")
-                pWriter.print("time")
-                pWriter.println()
-
-                val data = realm.where(CodeData::class.java).findAll()
-                for (d in data) {
-                    pWriter.print(d.uuid + ",")
-                    pWriter.print(d.format + ",")
-                    pWriter.print(d.data.replace("\n", " ") + ",")
-                    pWriter.print(d.time)
-                    pWriter.println()
-                }
-
-                pWriter.close()
-
-                true
-            } catch (e: Exception) {
-                false
-            }
-        }
-
-        private fun onCsvImport(path: String): Boolean {
-            return try {
-                val sReader = InputStreamReader(FileInputStream(path), "UTF-8")
-                val bReader = BufferedReader(sReader)
-
-                bReader.readLine()
-                bReader.forEachLine { line ->
-                    println(line)
-                    val list = line.split(",").dropLastWhile { it.isEmpty() }
-                    realm.executeTransaction { realm ->
-                        realm.createObject(CodeData::class.java, UUID.randomUUID().toString()).apply {
-                            format = list[1]
-                            data = list[2]
-                            time = list[3]
-                        }
-                    }
-                }
-                bReader.close()
-
-                true
-            } catch (e: Exception) {
-                e.printStackTrace()
-                false
-            }
-        }
-
         private fun onJsonExport(path: String): Boolean {
             try {
                 val random = RandomStringUtils.randomAlphabetic(20)
