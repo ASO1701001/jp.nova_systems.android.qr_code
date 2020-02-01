@@ -18,9 +18,15 @@ import io.realm.Realm
 import jp.nova_systems.android.qr_code.R
 import jp.nova_systems.android.qr_code.dialog.ProgressSnackBar
 import jp.nova_systems.android.qr_code.realm.CodeData
+import org.apache.commons.lang3.RandomStringUtils
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.*
-import java.time.LocalDateTime
+import java.nio.charset.Charset
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
+import java.util.stream.Collectors
 
 class SettingFragment : Fragment() {
 
@@ -32,6 +38,8 @@ class SettingFragment : Fragment() {
             .beginTransaction()
             .replace(R.id.setting, SettingPreference())
             .commit()
+
+        println(System.getProperty("file.encoding"))
 
         return inflater.inflate(R.layout.fragment_setting, container, false)
     }
@@ -55,7 +63,7 @@ class SettingFragment : Fragment() {
                         folderChooser { _, file ->
                             val snackBar = ProgressSnackBar(activity!!, "エクスポートしています…").create()
                             snackBar.show()
-                            val resultMsg = if (onCsvExport(file.absolutePath)) {
+                            val resultMsg = if (onJsonExport(file.absolutePath)) {
                                 "データをエクスポートしました"
                             } else {
                                 "データのエクスポートに失敗しました"
@@ -71,14 +79,14 @@ class SettingFragment : Fragment() {
             val dataImport = findPreference<PreferenceScreen>("data_import")
             dataImport?.setOnPreferenceClickListener {
                 MaterialDialog(activity!!).show {
-                    val filter: FileFilter = { it.isDirectory || it.extension.startsWith("csv", true) }
+                    val filter: FileFilter = { it.isDirectory || it.extension.startsWith("json", true) }
                     fileChooser(filter = filter) { dialog, file ->
                         val snackBar = ProgressSnackBar(activity!!, "インポートしています…").create()
                         snackBar.show()
-                        val resultMsg = if (onCsvImport(file.absolutePath)) {
-                            "データをエクスポートしました"
+                        val resultMsg = if (onJsonImport(file.absolutePath)) {
+                            "データをインポートしました"
                         } else {
-                            "データのエクスポートに失敗しました"
+                            "データのインポートに失敗しました"
                         }
                         snackBar.dismiss()
                         Snackbar.make(rootView, resultMsg, Snackbar.LENGTH_SHORT).show()
@@ -116,8 +124,8 @@ class SettingFragment : Fragment() {
 
         private fun onCsvExport(path: String): Boolean {
             return try {
-                val time = LocalDateTime.now()
-                val fileName = "qr_code_data_${time.year}${time.monthValue}${time.dayOfMonth}-${time.hour}${time.minute}${time.second}.csv"
+                val random = RandomStringUtils.randomAlphabetic(20)
+                val fileName = "qr_code_data_${random}.json"
 
                 val fWriter = FileWriter("$path/$fileName", false)
                 val pWriter = PrintWriter(BufferedWriter(fWriter))
@@ -169,6 +177,71 @@ class SettingFragment : Fragment() {
                 e.printStackTrace()
                 false
             }
+        }
+
+        private fun onJsonExport(path: String): Boolean {
+            try {
+                val random = RandomStringUtils.randomAlphabetic(20)
+                val fileName = "qr_code_data_${random}.json"
+                val file = File("$path/$fileName")
+                val stream = OutputStreamWriter(FileOutputStream(file), "UTF-8")
+                val buffer = BufferedWriter(stream)
+                val writer = PrintWriter(buffer)
+
+                val jsonData = JSONObject()
+                val jsonArray = JSONArray()
+                val data = realm.where(CodeData::class.java).findAll()
+                data.forEach {
+                    JSONObject().apply {
+                        put("uuid", it.uuid)
+                        put("format", it.format)
+                        put("data", it.data)
+                        put("time", it.time)
+                        jsonArray.put(this)
+                    }
+                }
+                jsonData.put("data", jsonArray)
+
+                writer.print(jsonData.toString(4))
+                writer.println()
+                writer.close()
+
+                return true
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+                return false
+            }
+        }
+
+        private fun onJsonImport(path: String): Boolean {
+            try {
+                val fileData = readAll(path)
+                val jsonData = JSONObject(fileData)
+                val jsonArray = jsonData.getJSONArray("data")
+
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.getJSONObject(i)
+                    realm.executeTransaction { realm ->
+                        realm.createObject(CodeData::class.java, UUID.randomUUID().toString()).apply {
+                            format = obj.getString("format")
+                            data = obj.getString("data")
+                            time = obj.getString("time")
+                        }
+                    }
+                }
+
+                return true
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+                return false
+            }
+        }
+
+        private fun readAll(path: String): String {
+            return Files.lines(Paths.get(path), Charset.forName("UTF-8"))
+                .collect(Collectors.joining(System.getProperty("line.separator")))
         }
     }
 }
