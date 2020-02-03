@@ -1,21 +1,36 @@
 package jp.nova_systems.android.qr_code.fragment
 
+import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.ListView
 import android.widget.SimpleAdapter
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.app.ShareCompat
 import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.bottomsheets.BottomSheet
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.files.folderChooser
 import com.google.android.material.snackbar.Snackbar
+import com.google.zxing.BarcodeFormat
+import com.journeyapps.barcodescanner.BarcodeEncoder
 import com.shreyaspatil.MaterialDialog.BottomSheetMaterialDialog
 import io.realm.Realm
 import jp.nova_systems.android.qr_code.R
 import jp.nova_systems.android.qr_code.realm.CodeData
+import org.apache.commons.lang3.RandomStringUtils
+import java.io.File
+import java.io.FileOutputStream
+import java.time.LocalDateTime
+import java.util.*
+import kotlin.collections.ArrayList
 
 class HistoryFragment : Fragment() {
     private lateinit var realm: Realm
@@ -52,30 +67,35 @@ class HistoryFragment : Fragment() {
         val adapter = SimpleAdapter(
             activity,
             data,
-            android.R.layout.simple_list_item_1,
-            arrayOf("data"),
-            intArrayOf(android.R.id.text1)
+            R.layout.layout_history_item,
+            arrayOf("data", "format"),
+            intArrayOf(R.id.text1, R.id.text2)
         )
         listView.adapter = adapter
         listView.setOnItemClickListener { _, _, i, _ ->
-            BottomSheetMaterialDialog.Builder(activity!!).apply {
-                val text = data[i]["data"].toString()
-                setTitle("データ")
-                setMessage(text)
-                setCancelable(true)
-                setPositiveButton("Share", R.drawable.icon_share) { dialog, _ ->
-                    ShareCompat.IntentBuilder.from(activity).apply {
-                        setText(text)
-                        setType("text/plain")
-                        startChooser()
-                    }
+            val text = data[i]["data"].toString()
+            val format = data[i]["format"].toString()
 
-                    dialog.dismiss()
-                }
-                setNegativeButton("キャンセル", R.drawable.icon_close) { dialog, _ ->
-                    dialog.dismiss()
-                }
-            }.build().show()
+            onGenerator(text, format)
+
+//            BottomSheetMaterialDialog.Builder(activity!!).apply {
+//                val text = data[i]["data"].toString()
+//                setTitle("データ")
+//                setMessage(text)
+//                setCancelable(true)
+//                setPositiveButton("Share", R.drawable.icon_share) { dialog, _ ->
+//                    ShareCompat.IntentBuilder.from(activity).apply {
+//                        setText(text)
+//                        setType("text/plain")
+//                        startChooser()
+//                    }
+//
+//                    dialog.dismiss()
+//                }
+//                setNegativeButton("キャンセル", R.drawable.icon_close) { dialog, _ ->
+//                    dialog.dismiss()
+//                }
+//            }.build().show()
         }
         listView.setOnItemLongClickListener { _, _, i, _ ->
             val uuid = data[i]["uuid"]
@@ -116,11 +136,68 @@ class HistoryFragment : Fragment() {
             for (i in 0 until data.size) {
                 val d = data[i]
                 if (d !== null) {
-                    val map = hashMapOf("uuid" to d.uuid, "data" to d.data)
+                    val map = hashMapOf(
+                        "uuid" to d.uuid,
+                        "format" to d.format,
+                        "data" to d.data
+                    )
                     list.add(map)
                 }
             }
             list
+        }
+    }
+
+    private fun onGenerator(text: String, format: String) {
+        val encoder = BarcodeEncoder()
+        val bitmap = encoder.encodeBitmap(text, BarcodeFormat.valueOf(format), 400, 400)
+
+        val view = View.inflate(activity, R.layout.layout_generate_dialog, null)
+        view.findViewById<ImageView>(R.id.image_view).setImageBitmap(bitmap)
+        MaterialDialog(activity!!, BottomSheet()).show {
+            cornerRadius(10f)
+            customView(view = view)
+            positiveButton(text = "保存") {
+                MaterialDialog(activity!!).show {
+                    folderChooser { _, file ->
+                        onSaveQrCode(bitmap, file.absolutePath)
+                    }
+                }
+            }
+            negativeButton(text = "キャンセル")
+        }
+
+        realm.executeTransaction { realm ->
+            realm.createObject(CodeData::class.java, UUID.randomUUID().toString()).apply {
+                this.format = format
+                this.data = text
+                time = LocalDateTime.now().toString()
+            }
+        }
+    }
+
+    private fun onSaveQrCode(bitmap: Bitmap, path: String) {
+        try {
+            val random = RandomStringUtils.randomAlphabetic(20)
+            val file = File("$path/$random.png")
+            FileOutputStream(file).apply {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, this)
+                close()
+            }
+
+            Snackbar.make(rootView, "保存しました", Snackbar.LENGTH_LONG).apply {
+                setAction("Open") {
+                    Intent().apply {
+                        action = Intent.ACTION_VIEW
+                        val uri = Uri.parse(file.path)
+                        setDataAndType(uri, "image/*")
+                        startActivity(this)
+                    }
+                }
+                show()
+            }
+        } catch (e: Exception) {
+            Snackbar.make(rootView, "保存に失敗しました", Snackbar.LENGTH_SHORT).show()
         }
     }
 }
