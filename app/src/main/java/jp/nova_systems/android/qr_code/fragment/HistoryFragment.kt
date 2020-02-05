@@ -1,5 +1,8 @@
 package jp.nova_systems.android.qr_code.fragment
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -11,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.SimpleAdapter
+import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -152,8 +156,17 @@ class HistoryFragment : Fragment() {
         val encoder = BarcodeEncoder()
         val bitmap = encoder.encodeBitmap(text, BarcodeFormat.valueOf(format), 400, 400)
 
-        val view = View.inflate(activity, R.layout.layout_generate_dialog, null)
-        view.findViewById<ImageView>(R.id.image_view).setImageBitmap(bitmap)
+        val view = View.inflate(activity, R.layout.layout_generate_dialog, null).apply {
+            findViewById<ImageView>(R.id.image_view).setImageBitmap(bitmap)
+            findViewById<TextView>(R.id.text_view).text = text
+            findViewById<TextView>(R.id.text_view).setOnLongClickListener {
+                val clipboardManager = activity!!.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                val data = ClipData.newPlainText("label", text)
+                clipboardManager.setPrimaryClip(data)
+                Snackbar.make(rootView, "クリップボードにコピーしました", Snackbar.LENGTH_SHORT).show()
+                return@setOnLongClickListener true
+            }
+        }
         MaterialDialog(activity!!, BottomSheet()).show {
             cornerRadius(10f)
             customView(view = view)
